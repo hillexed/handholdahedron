@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="shortcut icon" href="../favicon.ico"/>
+  <title>Handholdahedra Exploration</title>
+
+  <script type="module" src="./handholdahedroneditor.js"></script>
+
+  <style>
+    #canvasContainer{
+        width:100%;
+        height:100%;
+        position: absolute;
+    }
+    body{
+        margin:0;
+    }
+
+    canvas{
+        margin: 0 auto;
+        display: block;
+        width:100%;
+        height:100%;
+    }
+
+    #overlay{
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 2;
+        background-color: #fff5
+    }
+
+    .checkboxgrid{
+        grid-template-columns: repeat(3, 1fr);
+        display: grid;
+    }
+
+    .planebox{
+        margin: 3px;
+    }
+
+  </style>
+
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+
+</head>
+<body>
+  <div id="canvasContainer"> 
+    <canvas id="canvas">
+
+    </canvas>
+    <div id="overlay">
+
+        <button onclick="editor.importPlaneList()">Import Planes</button>
+        <button onclick="editor.exportPlaneList()">Export Planes</button>
+
+        <br />
+
+        Current selected plane: <span id="selectedPlane"></span>
+
+        <div class="checkboxgrid">
+            <div class="planebox">
+                <input type="checkbox" id="plane0">0</input>
+            </div>
+            <div class="planebox">
+                <input type="checkbox" id="plane1">1</input>
+            </div>
+            <div class="planebox">
+                <input type="checkbox" id="plane2">2</input>
+            </div>
+            <div class="planebox">
+                <input type="checkbox" id="plane3">3</input>
+            </div>
+            <div class="planebox">
+                <input type="checkbox" id="plane4">4</input>
+            </div>
+            <div class="planebox">
+                <input type="checkbox" id="plane5">5</input>
+            </div>
+            <div class="planebox">
+                <input type="checkbox" id="plane6">6</input>
+            </div>
+            <div class="planebox">
+                <input type="checkbox" id="plane7">7</input>
+            </div>
+            <div class="planebox">
+                <input type="checkbox" id="plane8">8</input>
+            </div>
+            <div class="planebox">
+                <input type="checkbox" id="plane9">9</input>
+            </div>
+            <div class="planebox">
+                <input type="checkbox" id="plane10">10</input>
+            </div>
+            <div class="planebox">
+                <input type="checkbox" id="plane11">11</input>
+            </div>
+        </div>
+        
+        <input type="checkbox" id="debugplanebtn">Show planes</input>
+    </div>
+  </div>
+</body>
+</html>
