@@ -83,6 +83,101 @@ export function matrixForRotationAboutZAxis(degrees){
     let c = Math.cos(theta), s = Math.sin(theta)
     return new THREE.Matrix3().set(c, -s,0, s, c,0,0,0,1)     
 }
+
+export function applyC3SymmetryAndOverwritePlanes(planeList, symmetryGenerator1Action, symmetryGenerator2Action){
+    let R = symmetryGenerator1Action
+    for(let orbit of symmetryGenerator1){
+        let plane1Index = orbit[0], plane2Index = orbit[1], plane3Index = orbit[2]
+        let plane = planeList[plane1Index]
+        
+        let rotated120Plane = new Plane(plane.point.clone().applyMatrix3(R), plane.normal.clone().applyMatrix3(R))
+        let rotated240Plane = new Plane(plane.point.clone().applyMatrix3(R).applyMatrix3(R), plane.normal.clone().applyMatrix3(R).applyMatrix3(R))
+        planeList[plane2Index] = rotated120Plane;
+        planeList[plane3Index] = rotated240Plane;
+        console.log("Using plane "+plane1Index+" to set "+plane2Index+" and "+plane3Index+" as rotated copies");
+    }
+        
+    let B = symmetryGenerator2Action;
+    for(let orbit of symmetryGenerator2){
+        let plane1Index = orbit[0], plane2Index = orbit[1];
+        let plane = planeList[plane1Index];
+        
+        let flippedPlane = new Plane(plane.point.clone().applyMatrix3(B), plane.normal.clone().applyMatrix3(B));
+        planeList[plane2Index] = flippedPlane
+        console.log("Using plane "+plane1Index+" as template to set "+plane2Index+" as a flipped copy")
+    }
+    return planeList;
+}
+
+function average(points){
+    return points.reduce(function (prev, current, _, array ) {
+        return [prev[0] + current[0]/ array.length, prev[1] + current[1]/ array.length, prev[2] + current[2]/ array.length];
+    }, [0,0,0]);
+}
+
+export function useExpandedTetrahedron(){
+
+        let originalData = [[-1.0736196041107178, 0.4330126941204071, 0.06391012668609619], [-0.8257338404655457, -2.9802322387695312e-08, -0.6439406871795654], [-1.0736196041107178, -0.4330126643180847, 0.06391012668609619], [0.5006407499313354, 0.4289108216762543, 2.2649168968200684], [0.5006407499313354, -0.4371145963668823, 2.2649168968200684], [1.2506407499313354, -0.004101799800992012, 2.2649168968200684], [2.007485866546631, -1.3343980312347412, 0.09912711381912231], [1.5532994270324707, -1.3950482606887817, -0.6323106288909912], [1.2617474794387817, -1.7821930646896362, 0.08308467268943787], [1.2558016777038574, 1.7986215353012085, 0.0579473078250885], [2.0133895874023438, 1.371612310409546, 0.08377200365066528], [1.5378903150558472, 1.3574577569961548, -0.6341543197631836]];
+
+   //vertices 0-2 and 3-5 are swapped, so vertex 0 is on the top face.
+   let data = [[0.5006407499313354, 0.4289108216762543, 2.2649168968200684], [0.5006407499313354, -0.4371145963668823, 2.2649168968200684], [1.2506407499313354, -0.004101799800992012, 2.2649168968200684], [-1.0736196041107178, 0.4330126941204071, 0.06391012668609619], [-0.8257338404655457, -2.9802322387695312e-08, -0.6439406871795654], [-1.0736196041107178, -0.4330126643180847, 0.06391012668609619], [2.007485866546631, -1.3343980312347412, 0.09912711381912231], [1.5532994270324707, -1.3950482606887817, -0.6323106288909912], [1.2617474794387817, -1.7821930646896362, 0.08308467268943787], [1.2558016777038574, 1.7986215353012085, 0.0579473078250885], [2.0133895874023438, 1.371612310409546, 0.08377200365066528], [1.5378903150558472, 1.3574577569961548, -0.6341543197631836]];
+
+    //this shape lies flatish on the z=0 plane, but we want to move the shape downwards so it's centered at 0
+
+    let shapeMidpoint = average(data)
+
+    console.log(shapeMidpoint)
+
+    //shift the dataset so it's centered at the origin
+    data = data.map((point) => [
+        point[0]-shapeMidpoint[0], 
+        point[1]-shapeMidpoint[1],
+        point[2]-shapeMidpoint[2]
+    ])
+
+    let planeList = [];
+    for(let i=0;i<data.length;i++){
+        let point = data[i];
+        let normal = data[i].map((i) => -i); //point backwards into zero
+
+        planeList.push(new Plane(point, normal));
+    }
+
+    /*
+    //now overwrite those planes to get them into the right order for the symmetry to work
+
+    // matrix that applies generator 1, order 3
+    let rotate120Deg = matrixForRotationAboutZAxis(120);
+
+    //now compute a 180 degree rotation about the midpoint of two tetrahedron vertices
+    //these seem like where some of the corners are aligned
+    let trianglePt1 = [-Math.sqrt(8/9),0,-1/3]; //from wikipedia page on tetrahedron
+    let trianglePt2 = [0,0,1];
+    let bottomTriangleMidpoint = [0,1,2].map((index) => (trianglePt1[index] + trianglePt2[index])/2);
+
+    //the axis to be rotated about points to the midpoint of an edge of a tetrahedron. 
+    let rotationAxis = new THREE.Vector3(...bottomTriangleMidpoint);
+    //rotationAxis.sub(new THREE.Vector3(...shapeMidpoint));
+    rotationAxis.normalize();
+    console.log("rotation axis", rotationAxis)
+
+    //make a 180 degree rotation matrix around that axis. for some reason makeRotationAxis only exists on Matrix4
+    let rotationMatrix4 = new THREE.Matrix4().makeRotationAxis(rotationAxis, Math.PI);
+    let rotationMatrix = new THREE.Matrix3().setFromMatrix4(rotationMatrix4);
+ 
+    
+    return applyC3SymmetryAndOverwritePlanes(planeList, rotate120Deg, rotationMatrix);
+    */
+
+    //symmetryGenerator1 = ((6,11,10),(9,8,7),(2,5,4),(0,3,1))
+    //symmetryGenerator2 = [[6, 9],[11, 7],[10, 8],[0, 2],[1, 5],[3, 4]])
+    //let reordering = [0,1,2,3,4,5,6,7,8,9,10,11];
+    let reordering = [0,1,4,2,3,5,
+    6,11,9,10,8,7];
+    planeList = reordering.map((index) => planeList[index])
+
+    return planeList;
+}    
         
         
 export function computePlanesRandomlyWithKnownC3Symmetry(){        
@@ -107,35 +202,18 @@ export function computePlanesRandomlyWithKnownC3Symmetry(){
         let normal = [Math.random(),Math.random(),Math.random()]
         facePlanes.push(new Plane(p1, normal))
     }
-            
-    let R = rotate120Deg
-    for(let orbit of symmetryGenerator1){
-        let plane1Index = orbit[0], plane2Index = orbit[1], plane3Index = orbit[2]
-        let plane = facePlanes[plane1Index]
-        
-        let rotated120Plane = new Plane(plane.point.clone().applyMatrix3(R), plane.normal.clone().applyMatrix3(R))
-        let rotated240Plane = new Plane(plane.point.clone().applyMatrix3(R).applyMatrix3(R), plane.normal.clone().applyMatrix3(R).applyMatrix3(R))
-        facePlanes[plane2Index] = rotated120Plane;
-        facePlanes[plane3Index] = rotated240Plane;
-        console.log("Using plane "+plane1Index+" to set "+plane2Index+" and "+plane3Index+" as rotated copies");
-    }
-        
-    let B = flipX;
-    for(let orbit of symmetryGenerator2){
-        let plane1Index = orbit[0], plane2Index = orbit[1];
-        let plane = facePlanes[plane1Index];
-        
-        let flippedPlane = new Plane(plane.point.clone().applyMatrix3(B), plane.normal.clone().applyMatrix3(B));
-        facePlanes[plane2Index] = flippedPlane
-        console.log("Using plane "+plane1Index+" as template to set "+plane2Index+" as a flipped copy")
-    }
-    return facePlanes;
+
+    return applyC3SymmetryAndOverwritePlanes(facePlanes, rotate120Deg, flipX);
 }
 
 export function computeInitialDualPlaneList(){
     //let planeList = computePlanesFromPolyhedron(dodecahedron)
     //let  planeList = computePlanesFromPolyhedron(simplex)
-    let planeList = computePlanesRandomlyWithKnownC3Symmetry();
+
+    //let planeList = computePlanesRandomlyWithKnownC3Symmetry(); //best
+
+    let planeList = useExpandedTetrahedron();
+
     //console.log(planeList)
     return planeList;
 }
