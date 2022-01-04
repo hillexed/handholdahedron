@@ -37,6 +37,14 @@ class Editor extends HandholdahedronVizualizer{
             }
         })
 
+        let wireframesCheckbox = document.getElementById("togglewireframes");
+        wireframesCheckbox.checked = true;
+        wireframesCheckbox.addEventListener("click", () => this.setWireframesVisibility(wireframesCheckbox.checked))
+
+        let toggleFacesCheckbox = document.getElementById("togglefaces");
+        toggleFacesCheckbox.checked = true;
+        toggleFacesCheckbox.addEventListener("click", () => this.setFacesVisibility(toggleFacesCheckbox.checked))
+
         this.update();
 
         this.selectOnePlaneToEdit(0);
@@ -120,6 +128,15 @@ class Editor extends HandholdahedronVizualizer{
         }
         this.updateUI();
     }    
+
+    setFacesVisibility(isVisible){
+        this.handholdahedronMeshes.faces.forEach((mesh) => {mesh.visible = isVisible});
+        this.handholdahedronMeshes.vertexSpheres.forEach((mesh) => {mesh.visible = isVisible});
+    }
+    setWireframesVisibility(isVisible){
+        this.handholdahedronMeshes.faceWireframes.forEach((mesh) => {mesh.visible = isVisible});
+    }
+
 
     exportPlaneList(){
         let planes = this.planeList.map(

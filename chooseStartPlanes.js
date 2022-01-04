@@ -40,8 +40,7 @@ export let dodecahedron = new Polyhedron({
         [19, 5, 14,  4, 17],
         [1, 12, 14,  5,  9],
     ]
-});
-console.log(dodecahedron)    
+});    
 
 // for debugging
 let simplex = new Polyhedron({'verts':[
@@ -117,16 +116,14 @@ function average(points){
 
 export function useExpandedTetrahedron(){
 
-        let originalData = [[-1.0736196041107178, 0.4330126941204071, 0.06391012668609619], [-0.8257338404655457, -2.9802322387695312e-08, -0.6439406871795654], [-1.0736196041107178, -0.4330126643180847, 0.06391012668609619], [0.5006407499313354, 0.4289108216762543, 2.2649168968200684], [0.5006407499313354, -0.4371145963668823, 2.2649168968200684], [1.2506407499313354, -0.004101799800992012, 2.2649168968200684], [2.007485866546631, -1.3343980312347412, 0.09912711381912231], [1.5532994270324707, -1.3950482606887817, -0.6323106288909912], [1.2617474794387817, -1.7821930646896362, 0.08308467268943787], [1.2558016777038574, 1.7986215353012085, 0.0579473078250885], [2.0133895874023438, 1.371612310409546, 0.08377200365066528], [1.5378903150558472, 1.3574577569961548, -0.6341543197631836]];
-
-   //vertices 0-2 and 3-5 are swapped, so vertex 0 is on the top face.
-   let data = [[0.5006407499313354, 0.4289108216762543, 2.2649168968200684], [0.5006407499313354, -0.4371145963668823, 2.2649168968200684], [1.2506407499313354, -0.004101799800992012, 2.2649168968200684], [-1.0736196041107178, 0.4330126941204071, 0.06391012668609619], [-0.8257338404655457, -2.9802322387695312e-08, -0.6439406871795654], [-1.0736196041107178, -0.4330126643180847, 0.06391012668609619], [2.007485866546631, -1.3343980312347412, 0.09912711381912231], [1.5532994270324707, -1.3950482606887817, -0.6323106288909912], [1.2617474794387817, -1.7821930646896362, 0.08308467268943787], [1.2558016777038574, 1.7986215353012085, 0.0579473078250885], [2.0133895874023438, 1.371612310409546, 0.08377200365066528], [1.5378903150558472, 1.3574577569961548, -0.6341543197631836]];
+  let data = [[1.5567, -1.3957, -0.62313], [2.0065, -1.3326, 0.0096854],[1.2623, -1.7774, 0.08866],
+[-0.827, -0.0039, -0.6381],[2.0062, 1.3706, 0.0900],[0.4964, -0.43, 2.25],
+[1.5204, 1.3539, -0.63263],[1.2446, -0.006, 2.2535],[-1.0698, -0.43225, 0.069121],
+[-1.0653, 0.4301, 0.069121],[1.2548, 1.7975, 0.0568],[0.50744, 0.42445, 2.2649]];
 
     //this shape lies flatish on the z=0 plane, but we want to move the shape downwards so it's centered at 0
 
-    let shapeMidpoint = average(data)
-
-    console.log(shapeMidpoint)
+    let shapeMidpoint = average(data);
 
     //shift the dataset so it's centered at the origin
     data = data.map((point) => [
@@ -142,39 +139,6 @@ export function useExpandedTetrahedron(){
 
         planeList.push(new Plane(point, normal));
     }
-
-    /*
-    //now overwrite those planes to get them into the right order for the symmetry to work
-
-    // matrix that applies generator 1, order 3
-    let rotate120Deg = matrixForRotationAboutZAxis(120);
-
-    //now compute a 180 degree rotation about the midpoint of two tetrahedron vertices
-    //these seem like where some of the corners are aligned
-    let trianglePt1 = [-Math.sqrt(8/9),0,-1/3]; //from wikipedia page on tetrahedron
-    let trianglePt2 = [0,0,1];
-    let bottomTriangleMidpoint = [0,1,2].map((index) => (trianglePt1[index] + trianglePt2[index])/2);
-
-    //the axis to be rotated about points to the midpoint of an edge of a tetrahedron. 
-    let rotationAxis = new THREE.Vector3(...bottomTriangleMidpoint);
-    //rotationAxis.sub(new THREE.Vector3(...shapeMidpoint));
-    rotationAxis.normalize();
-    console.log("rotation axis", rotationAxis)
-
-    //make a 180 degree rotation matrix around that axis. for some reason makeRotationAxis only exists on Matrix4
-    let rotationMatrix4 = new THREE.Matrix4().makeRotationAxis(rotationAxis, Math.PI);
-    let rotationMatrix = new THREE.Matrix3().setFromMatrix4(rotationMatrix4);
- 
-    
-    return applyC3SymmetryAndOverwritePlanes(planeList, rotate120Deg, rotationMatrix);
-    */
-
-    //symmetryGenerator1 = ((6,11,10),(9,8,7),(2,5,4),(0,3,1))
-    //symmetryGenerator2 = [[6, 9],[11, 7],[10, 8],[0, 2],[1, 5],[3, 4]])
-    //let reordering = [0,1,2,3,4,5,6,7,8,9,10,11];
-    let reordering = [0,1,4,2,3,5,
-    6,11,9,10,8,7];
-    planeList = reordering.map((index) => planeList[index])
 
     return planeList;
 }    
