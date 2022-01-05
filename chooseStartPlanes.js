@@ -1,7 +1,7 @@
 import {dot, cross, Plane, Polyhedron} from "./polyhedramath.js";
 import * as THREE from "./lib/three.module.js";
 import {renderDualPolyhedronFromPlanes} from "./makedual.js";
-import {symmetryGenerator1, symmetryGenerator2} from "./knownmathematicalsymmetry.js";
+import {symmetryGenerator1C3, symmetryGenerator2C3} from "./knownmathematicalsymmetry.js";
 
 
 // Generate a dodecahedron's faces from its points.
@@ -85,7 +85,7 @@ export function matrixForRotationAboutZAxis(degrees){
 
 export function applyC3SymmetryAndOverwritePlanes(planeList, symmetryGenerator1Action, symmetryGenerator2Action){
     let R = symmetryGenerator1Action
-    for(let orbit of symmetryGenerator1){
+    for(let orbit of symmetryGenerator1C3){
         let plane1Index = orbit[0], plane2Index = orbit[1], plane3Index = orbit[2]
         let plane = planeList[plane1Index]
         
@@ -97,7 +97,7 @@ export function applyC3SymmetryAndOverwritePlanes(planeList, symmetryGenerator1A
     }
         
     let B = symmetryGenerator2Action;
-    for(let orbit of symmetryGenerator2){
+    for(let orbit of symmetryGenerator2C3){
         let plane1Index = orbit[0], plane2Index = orbit[1];
         let plane = planeList[plane1Index];
         
