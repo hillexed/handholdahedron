@@ -166,7 +166,7 @@ class Editor extends HandholdahedronVizualizer{
             return maximizeThisFromPlanes(planeList);
         }
 
-        let stepSize = 0.0001;
+        let stepSize = 0.00001;
 
         this.gradientAscentParameters = oneRoundGradientAscent(this.gradientAscentParameters, testingFunction, stepSize)
         this.planeList = reallyDumbPlaneMaker(this.gradientAscentParameters);
@@ -192,7 +192,6 @@ class Editor extends HandholdahedronVizualizer{
     }
 
     toggleAscent(){
-
         if(this.gradientAscentParameters === undefined){
             this.initGradientAscent();
         }
@@ -208,7 +207,8 @@ class Editor extends HandholdahedronVizualizer{
     doAscent(){
         if(!this.runningAscent)return;
 
-        this.randomAscent();
+        this.gradientAscent();
+        //this.randomAscent();
 
         if(this.numAscentIterations % 1000 != 999){
             window.requestAnimationFrame(this.doAscent.bind(this))
@@ -225,8 +225,14 @@ class Editor extends HandholdahedronVizualizer{
         let planes = this.planeList.map(
             (plane) => ({point: plane.point.toArray(), normal: plane.normal.toArray()})
         )
+
+        let data = {"planeList":planes};
+
+        if(this.gradientAscentParameters !== undefined){
+            data.gradientAscentParameters = this.gradientAscentParameters;
+        }
     
-        let planeString = JSON.stringify({"planeList":planes});
+        let planeString = JSON.stringify(data);
         alert(planeString);
     }
 
@@ -240,10 +246,14 @@ class Editor extends HandholdahedronVizualizer{
         }
         let planeData = data.planeList;
         for(let i=0;i<planeData.length;i++){
-            
             this.planeList[i].point.set(...planeData[i].point);
             this.planeList[i].normal.set(...planeData[i].normal);
         }
+
+        if(data.gradientAscentParameters !== undefined){
+            this.gradientAscentParameters = data.gradientAscentParameters;
+        }
+
         this.meshesNeedUpdate = true;
     }
 

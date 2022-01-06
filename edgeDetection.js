@@ -67,8 +67,8 @@ function lineSegmentThingToMaximize(line1_1, line1_2, line2_1, line2_2){
     let value = lineSegmentCrossesPlaneTest(line1_1, line1_2, line2_1, line2_2) + lineSegmentCrossesPlaneTest(line2_1, line2_2, line1_1, line1_2)
 
     //cap the value of a crossing that already isn't intersecting
-    if(value > 10){
-        value = 10;
+    if(value > 1){
+        value = 1;
     }
 
     return value;

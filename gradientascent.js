@@ -36,7 +36,7 @@ export function oneRoundRandomChoice(parameters, testingFunction, stepSize){
 }
 
 export function oneRoundGradientAscent(parameters, testingFunction, stepSize){
-    let gradientComputingStepSize = 0.01;
+    let gradientComputingStepSize = 0.001;
 
     let gradient = [];
 

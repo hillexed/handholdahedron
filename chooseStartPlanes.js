@@ -116,7 +116,7 @@ function average(points){
 
 export function useExpandedTetrahedron(){
 
-  let data = [[1.5567, -1.3957, -0.62313], [2.0065, -1.3326, 0.0096854],[1.2623, -1.7774, 0.08866],
+    let data = [[1.5567, -1.3957, -0.62313], [2.0065, -1.3326, 0.0096854],[1.2623, -1.7774, 0.08866],
 [-0.827, -0.0039, -0.6381],[2.0062, 1.3706, 0.0900],[0.4964, -0.43, 2.25],
 [1.5204, 1.3539, -0.63263],[1.2446, -0.006, 2.2535],[-1.0698, -0.43225, 0.069121],
 [-1.0653, 0.4301, 0.069121],[1.2548, 1.7975, 0.0568],[0.50744, 0.42445, 2.2649]];
@@ -131,6 +131,15 @@ export function useExpandedTetrahedron(){
         point[1]-shapeMidpoint[1],
         point[2]-shapeMidpoint[2]
     ])
+
+    /*
+        //make 5 times as big
+    data = data.map((point) => [
+        point[0]*5, 
+        point[1]*5,
+        point[2]*5
+    ])
+    */
 
     let planeList = [];
     for(let i=0;i<data.length;i++){
