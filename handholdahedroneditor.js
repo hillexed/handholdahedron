@@ -10,7 +10,7 @@ updatePlaneDebugRectangles, createDebugPlaneMeshes, showDebugPlanes, hideDebugPl
 import {allPossibleEdgeCrossingPairs, triangleFaceIndexDigits} from "./knownmathematicalsymmetry.js";
 import {countCrossings, maximizeThisToReduceCrossings} from "./edgeDetection.js";
 
-import {reallyDumbStartParameters, reallyDumbPlaneMaker, oneRoundGradientAscent, maximizeThisFromPlanes} from "./gradientascent.js";
+import {reallyDumbStartParameters, reallyDumbPlaneMaker, oneRoundGradientAscent, maximizeThisFromPlanes, planesToReallyDumbStartParameters, oneRoundRandomChoice} from "./gradientascent.js";
 
 
 class Editor extends HandholdahedronVizualizer{
@@ -151,10 +151,13 @@ class Editor extends HandholdahedronVizualizer{
     }
 
     initGradientAscent(){
-        this.gradientAscentParameters = [...reallyDumbStartParameters];
+        this.gradientAscentParameters = planesToReallyDumbStartParameters(this.planeList);
         this.planeList = reallyDumbPlaneMaker(this.gradientAscentParameters);
         this.meshesNeedUpdate = true;
+        this.numAscentIterations = 0;
     }
+
+
     gradientAscent(){
         let optimizationFunction = maximizeThisFromPlanes(this.planeList);
 
@@ -163,12 +166,59 @@ class Editor extends HandholdahedronVizualizer{
             return maximizeThisFromPlanes(planeList);
         }
 
-        let stepSize = 0.001;
+        let stepSize = 0.0001;
 
         this.gradientAscentParameters = oneRoundGradientAscent(this.gradientAscentParameters, testingFunction, stepSize)
         this.planeList = reallyDumbPlaneMaker(this.gradientAscentParameters);
         this.meshesNeedUpdate = true;
+
+        this.numAscentIterations += 1;
     }
+    randomAscent(){
+        let optimizationFunction = maximizeThisFromPlanes(this.planeList);
+
+        function testingFunction(parameters){
+            let planeList = reallyDumbPlaneMaker(parameters);
+            return maximizeThisFromPlanes(planeList);
+        }
+
+        let stepSize = 0.1;
+
+        this.gradientAscentParameters = oneRoundRandomChoice(this.gradientAscentParameters, testingFunction, stepSize)
+        this.planeList = reallyDumbPlaneMaker(this.gradientAscentParameters);
+        this.meshesNeedUpdate = true;
+
+        this.numAscentIterations += 1;
+    }
+
+    toggleAscent(){
+
+        if(this.gradientAscentParameters === undefined){
+            this.initGradientAscent();
+        }
+
+        if(!this.runningAscent){
+            this.runningAscent = true;
+            this.doAscent();
+        }else{
+            this.runningAscent = false;
+        }
+    }
+
+    doAscent(){
+        if(!this.runningAscent)return;
+
+        this.randomAscent();
+
+        if(this.numAscentIterations % 1000 != 999){
+            window.requestAnimationFrame(this.doAscent.bind(this))
+        }
+
+        document.getElementById("numIterations").innerHTML = this.numAscentIterations;
+        document.getElementById("maximizingValue").innerHTML = maximizeThisFromPlanes(this.planeList);
+    }
+
+    
 
 
     exportPlaneList(){

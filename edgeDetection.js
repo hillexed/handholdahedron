@@ -63,7 +63,15 @@ export function maximizeThisToReduceCrossings(vertexArray, crossingPairsToCheck)
 function lineSegmentThingToMaximize(line1_1, line1_2, line2_1, line2_2){
     //if you maximize this, it'll hopefully make the line segments uncross!
     //once both of these things are >0, it means there's no intersection.
-    return lineSegmentCrossesPlaneTest(line1_1, line1_2, line2_1, line2_2) + lineSegmentCrossesPlaneTest(line2_1, line2_2, line1_1, line1_2);
+
+    let value = lineSegmentCrossesPlaneTest(line1_1, line1_2, line2_1, line2_2) + lineSegmentCrossesPlaneTest(line2_1, line2_2, line1_1, line1_2)
+
+    //cap the value of a crossing that already isn't intersecting
+    if(value > 10){
+        value = 10;
+    }
+
+    return value;
 }
 
 
