@@ -1,3 +1,4 @@
+import {computeAllPossibleCrossingPairs} from "./edgeDetection.js";
 //this file contains info on the DUAL of the 12-sided handholdahedron
 //it comes from On the Generation of Oriented Matroids by J. Bokowski and A. Guedes de Oliveira (2000)
 
@@ -28,5 +29,7 @@ export let triangleFaceIndexDigits = [[0,1,4], [0,1,8], [0,2,3], [0,2,7], [0,3,6
 let generator1 = [[0,1,2],[3,4,5 ],[6,7,8 ],[9,a,b]]; //order 3 - 
 let generator2 = [[0,4 ],[1,9 ],[2,6 ],[3,a ],[5,8 ],[7,b]];
 let generator3 = [[0,7 ],[1,5 ],[2,a ],[3,6 ],[4,b ],[8,9]];
+
+export let allPossibleEdgeCrossingPairs = computeAllPossibleCrossingPairs(triangleFaceIndexDigits)
 
 

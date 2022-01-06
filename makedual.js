@@ -23,7 +23,7 @@ function computeAndVerifyAllPlaneIntersections(facePlanes){
 }
 
 
-function computeDualPolyhedronFromFacePlanes(primalVertices, primalFaces, planeList){
+export function computeDualPolyhedronFromFacePlanes(primalVertices, primalFaces, planeList){
     let dualVertices = [];
     let dualFaces = [];
     for(var i=0;i<primalVertices.length;i++){
@@ -60,23 +60,32 @@ function getElementOfArrayWhichIsntOneOfThese(array, notThis, notThisEither){
     throw new Exception();
 }
 
-function reorderFaceIndicesSoNeighboringElementsShareEdges(thisFaceIndex, dualFaceIndexList){
-    //dualFaceList is a list of which vertex indices belong to which face - for example, if [1,2,3] is in the 44th slot and [1,6,7] is in the 2nd element of triangleFaceIndexDigits, then faceIndex=1 would have 44 and 2 in dualFaceList.
 
-
+export function reorderFaceIndicesSoNeighboringElementsShareEdges(thisFaceIndex, dualFaceIndexList){
+    //dualFaceIndexList is a list of which vertex indices belong to which face - for example, if [1,2,3] is in the 44th slot and [1,6,7] is in the 2nd element of triangleFaceIndexDigits, then faceIndex=1 would have 44 and 2 in dualFaceList.
     //this function reorders vertices so that the edges are closed in the right order. the vertex whose index is at slot 0 shares an edge with the vertex whose index is at slot 1, and so on 0 --- 1 --- 2 ----3 etc
 
     let thisFaceIntersectionLists = dualFaceIndexList.map( (index) => triangleFaceIndexDigits[index]); //all the elements of triangleFaceIndexDigits which have a (faceIndex) in them
 
+    let properlyOrderedIntersections = reorderFaceIntersectionListsSoNeighboringElementsShareEdges(thisFaceIndex, thisFaceIntersectionLists);
+
+    //convert [a,b,c] intersections-of-3-planes back to indices
+    return properlyOrderedIntersections.map((thing) => triangleFaceIndexDigits.indexOf(thing))
+}
+
+export function reorderFaceIntersectionListsSoNeighboringElementsShareEdges(thisFaceIndex, faceIntersectionList){
+    //dualFaceList is a list of which vertex indices belong to which face - for example, if [1,2,3] is in the 44th slot and [1,6,7] is in the 2nd element of triangleFaceIndexDigits, then faceIndex=1 would have 44 and 2 in dualFaceList.
+    //this function reorders vertices so that the edges are closed in the right order. the vertex whose index is at slot 0 shares an edge with the vertex whose index is at slot 1, and so on 0 --- 1 --- 2 ----3 etc
+
     let properlyOrderedIntersections = [];
-    let firstIntersection = thisFaceIntersectionLists[0];
+    let firstIntersection = faceIntersectionList[0];
 
     let currentLineIndex = getElementOfArrayWhichIsntOneOfThese(firstIntersection, thisFaceIndex);
     let prevLineIndex = getElementOfArrayWhichIsntOneOfThese(firstIntersection, thisFaceIndex, currentLineIndex);
-    for(let i=0;i<thisFaceIntersectionLists.length;i++){
+    for(let i=0;i<faceIntersectionList.length;i++){
         //get the two points in theseVertices formed by the intersection of plane # thisFaceIndex, plane # otherPlaneIndex, and one other plane
         //
-        let twoVerticesOfThisEdge = thisFaceIntersectionLists.filter((intersection) => intersection.includes(thisFaceIndex) && intersection.includes(currentLineIndex));
+        let twoVerticesOfThisEdge = faceIntersectionList.filter((intersection) => intersection.includes(thisFaceIndex) && intersection.includes(currentLineIndex));
         //assert twoVerticesOfThisEdge.length == 2;    
 
         //now move along the line made by intersecting plane thisFaceIndex with plane currentLineIndex
@@ -89,11 +98,7 @@ function reorderFaceIndicesSoNeighboringElementsShareEdges(thisFaceIndex, dualFa
 
         properlyOrderedIntersections.push(nextPoint);
     }
-
-    //convert [a,b,c] intersections-of-3-planes back to indices
-    let orderedFaceIndices = properlyOrderedIntersections.map((thing) => triangleFaceIndexDigits.indexOf(thing))
-
-    return orderedFaceIndices;
+    return properlyOrderedIntersections;
 }
 
 
@@ -119,7 +124,6 @@ export function visualizePlanesWithMeshes(planeList,planeRectSize=20){
         addBlenderMesh(vertexArray=verts, faceArray=[[0,1,2,3]], name="face "+(i+1))
     }
 }
-
 
 export function renderDualPolyhedronFromPlanes(planeList){
     //given a list of 12 planes, using triangleFaceIndexDigits to know which planes' intersections have a vertex, compute the dual polyhedron.

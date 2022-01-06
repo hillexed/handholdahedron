@@ -1,11 +1,16 @@
 import {HandholdahedronVizualizer} from "./handholdahedronvisualizer.js";
 
 
-import {renderDualPolyhedronFromPlanes} from "./makedual.js";
+import {renderDualPolyhedronFromPlanes, computeDualPolyhedronFromFacePlanes} from "./makedual.js";
 import {KeyboardListener} from "./keyboardlistener.js";
 import {displayWireframeAsSelected, displayWireframeAsDeselected, 
 updatePlaneDebugRectangles, createDebugPlaneMeshes, showDebugPlanes, hideDebugPlanes
 } from "./visualizeObjectThree.js";
+
+import {allPossibleEdgeCrossingPairs, triangleFaceIndexDigits} from "./knownmathematicalsymmetry.js";
+import {countCrossings, maximizeThisToReduceCrossings} from "./edgeDetection.js";
+
+import {reallyDumbStartParameters, reallyDumbPlaneMaker, oneRoundGradientAscent, maximizeThisFromPlanes} from "./gradientascent.js";
 
 
 class Editor extends HandholdahedronVizualizer{
@@ -68,6 +73,7 @@ class Editor extends HandholdahedronVizualizer{
         }
 
         updatePlaneDebugRectangles(this.planeList);
+        this.updateUI();
         
         this.meshesInScene = true;
         this.meshesNeedUpdate = false;
@@ -137,6 +143,33 @@ class Editor extends HandholdahedronVizualizer{
         this.handholdahedronMeshes.faceWireframes.forEach((mesh) => {mesh.visible = isVisible});
     }
 
+    countEdgeCrossings(){
+        let dualPolyhedronData = computeDualPolyhedronFromFacePlanes([[],[],[],[],[],[],[],[],[],[],[],[]], triangleFaceIndexDigits, this.planeList);
+        let dualVertices = dualPolyhedronData[0], dualFaces = dualPolyhedronData[1];
+
+        return countCrossings(dualVertices, allPossibleEdgeCrossingPairs);
+    }
+
+    initGradientAscent(){
+        this.gradientAscentParameters = [...reallyDumbStartParameters];
+        this.planeList = reallyDumbPlaneMaker(this.gradientAscentParameters);
+        this.meshesNeedUpdate = true;
+    }
+    gradientAscent(){
+        let optimizationFunction = maximizeThisFromPlanes(this.planeList);
+
+        function testingFunction(parameters){
+            let planeList = reallyDumbPlaneMaker(parameters);
+            return maximizeThisFromPlanes(planeList);
+        }
+
+        let stepSize = 0.001;
+
+        this.gradientAscentParameters = oneRoundGradientAscent(this.gradientAscentParameters, testingFunction, stepSize)
+        this.planeList = reallyDumbPlaneMaker(this.gradientAscentParameters);
+        this.meshesNeedUpdate = true;
+    }
+
 
     exportPlaneList(){
         let planes = this.planeList.map(
@@ -181,6 +214,8 @@ class Editor extends HandholdahedronVizualizer{
         for(let planeIndex of this.selectedPlanes){
             document.getElementById("selectedPlane").innerHTML += planeIndex + ",";
         }
+
+        document.getElementById("crossingCount").innerHTML = this.countEdgeCrossings();
     }
 }
 
