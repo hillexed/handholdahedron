@@ -13,6 +13,11 @@ import {countCrossings, maximizeThisToReduceCrossings} from "./edgeDetection.js"
 import {reallyDumbStartParameters, reallyDumbPlaneMaker, oneRoundGradientAscent, maximizeThisFromPlanes, planesToReallyDumbStartParameters, oneRoundRandomChoice} from "./gradientascent.js";
 
 
+import {computeInitialDualPlaneList, applyTetrahedralishSymmetryAndOverwritePlanes, } from "./chooseStartPlanes.js";
+
+
+import {matrixForRotationAboutAxis} from "./polyhedramath.js";
+
 class Editor extends HandholdahedronVizualizer{
     constructor(){
         super();
@@ -50,6 +55,8 @@ class Editor extends HandholdahedronVizualizer{
         toggleFacesCheckbox.checked = true;
         toggleFacesCheckbox.addEventListener("click", () => this.setFacesVisibility(toggleFacesCheckbox.checked))
 
+        //used for keyboard rotate controls
+        this.keyboardAction = "rotate"
         this.update();
 
         this.selectOnePlaneToEdit(0);
@@ -80,14 +87,30 @@ class Editor extends HandholdahedronVizualizer{
     }
     update(){
         for(let planeIndex of this.selectedPlanes){
-            this.movePlaneWithArrowKeys(this.planeList[planeIndex]);
+            if(this.keyboardAction == 'move'){
+                this.movePlaneWithArrowKeys(this.planeList[planeIndex]);    
+            }else{
+                this.rotatePlaneWithArrowKeys(this.planeList[planeIndex]);    
+            }
         }
         this.updateMeshesFromPlanes();
         window.requestAnimationFrame(this.update.bind(this));
     }
+    toggleKeyboardMode(){
+        //switch between rotating with arrow keys and moving with arrow keys
+        if(this.keyboardAction == 'move'){
+            this.keyboardAction = "rotate";
+            document.getElementById("movecontrols").style.display = "none";
+            document.getElementById("rotatecontrols").style.display = "";
+        }else{
+            this.keyboardAction = 'move'
+            document.getElementById("movecontrols").style.display = "";
+            document.getElementById("rotatecontrols").style.display = "none";
+        }
+    }
     movePlaneWithArrowKeys(plane){
         if(this.key.left || this.key.a){
-            plane.point.x -= 0.1;
+            plane.normal.applyMatrix3(this.rotateAroundX);
             this.meshesNeedUpdate = true;
         }
         if(this.key.right || this.key.d){
@@ -109,6 +132,41 @@ class Editor extends HandholdahedronVizualizer{
         if(this.key.e){
             plane.point.z -= 0.1;
             this.meshesNeedUpdate = true;
+        }
+
+        if(this.symmetryOverwritingEnabled){
+            this.applySymmetry();
+        }
+    }
+    rotatePlaneWithArrowKeys(plane){
+        this.rotationSpeed = Math.PI/60/10;
+        if(this.key.left || this.key.a){
+            plane.normal.applyMatrix3(matrixForRotationAboutAxis(new THREE.Vector3(1,0,0), -this.rotationSpeed));
+            this.meshesNeedUpdate = true;
+        }
+        if(this.key.right || this.key.d){
+            plane.normal.applyMatrix3(matrixForRotationAboutAxis(new THREE.Vector3(1,0,0), this.rotationSpeed));
+            this.meshesNeedUpdate = true;
+        }
+        if(this.key.up || this.key.w){
+            plane.normal.applyMatrix3(matrixForRotationAboutAxis(new THREE.Vector3(0,1,0), this.rotationSpeed));
+            this.meshesNeedUpdate = true;
+        }
+        if(this.key.down || this.key.s){
+            plane.normal.applyMatrix3(matrixForRotationAboutAxis(new THREE.Vector3(0,1,0), -this.rotationSpeed));
+            this.meshesNeedUpdate = true;
+        }
+        if(this.key.q){
+            plane.normal.applyMatrix3(matrixForRotationAboutAxis(new THREE.Vector3(0,0,1), this.rotationSpeed));
+            this.meshesNeedUpdate = true;
+        }
+        if(this.key.e){
+            plane.normal.applyMatrix3(matrixForRotationAboutAxis(new THREE.Vector3(0,0,1), -this.rotationSpeed));
+            this.meshesNeedUpdate = true;
+        }
+
+        if(this.symmetryOverwritingEnabled){
+            this.applySymmetry();
         }
     }
     selectOnePlaneToEdit(planeIndex){
@@ -218,15 +276,46 @@ class Editor extends HandholdahedronVizualizer{
         document.getElementById("maximizingValue").innerHTML = maximizeThisFromPlanes(this.planeList);
     }
 
+    startPlaneSearch(limit){
+        //keep trying one random handholdahedron per frame until we find one or your browser crashes.
+        if(limit === undefined){
+            limit = 15;
+        }
+        this.maxIntersectionsToHuntFor = limit;
+        this.doPlaneSearch()
+    }
+
+    doPlaneSearch(limit){
+        //keep trying one random handholdahedron per frame until we find one or your browser crashes.
+
+        let startingPlaneList = computeInitialDualPlaneList();
+        this.planeList = computeInitialDualPlaneList();
+        this.meshesNeedUpdate = true;
+        this.updateMeshesFromPlanes();
+
+        if(this.countEdgeCrossings() >= this.maxIntersectionsToHuntFor){
+            window.setTimeout(this.doPlaneSearch.bind(this), 1);
+        }
+
+    }
+
+    applySymmetry(){
+    //make planes 1-11 rotated copies of plane #0
+        applyTetrahedralishSymmetryAndOverwritePlanes(this.planeList)
+    }
     
 
 
-    exportPlaneList(){
+    exportData(){
         let planes = this.planeList.map(
             (plane) => ({point: plane.point.toArray(), normal: plane.normal.toArray()})
         )
 
-        let data = {"planeList":planes};
+
+        let dualPolyhedronData = computeDualPolyhedronFromFacePlanes([[],[],[],[],[],[],[],[],[],[],[],[]], triangleFaceIndexDigits, this.planeList);
+        let dualVertices = dualPolyhedronData[0], dualFaces = dualPolyhedronData[1];
+
+        let data = {"planeList":planes, "vertices":dualVertices, "faces": dualFaces}
 
         if(this.gradientAscentParameters !== undefined){
             data.gradientAscentParameters = this.gradientAscentParameters;

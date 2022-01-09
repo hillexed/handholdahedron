@@ -61,3 +61,11 @@ export class Polyhedron{
         }
     }
 }
+
+export function matrixForRotationAboutAxis(axis, angle){
+    if(angle === undefined){
+        angle = Math.PI; //180 degrees
+    }
+    let mat4 = new THREE.Matrix4().makeRotationAxis(axis, angle);
+    return new THREE.Matrix3().setFromMatrix4(mat4);
+}

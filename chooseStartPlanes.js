@@ -1,4 +1,4 @@
-import {dot, cross, Plane, Polyhedron} from "./polyhedramath.js";
+import {dot, cross, Plane, Polyhedron, matrixForRotationAboutAxis} from "./polyhedramath.js";
 import * as THREE from "./lib/three.module.js";
 import {renderDualPolyhedronFromPlanes} from "./makedual.js";
 import {symmetryGenerator1C3, symmetryGenerator2C3, order12Generator1, order12Generator2} from "./knownmathematicalsymmetry.js";
@@ -77,13 +77,6 @@ export function computePlanesRandomly(){
     return facePlanes
 }
 
-export function matrixForRotationAboutAxis(axis, angle){
-    if(angle === undefined){
-        angle = Math.PI; //180 degrees
-    }
-    let mat4 = new THREE.Matrix4().makeRotationAxis(axis, angle);
-    return new THREE.Matrix3().setFromMatrix4(mat4);
-}
 
 export function matrixForRotationAboutZAxis(degrees){
     let theta = degrees * Math.PI/180;
@@ -106,16 +99,11 @@ export function applySymmetryAndOverwritePlanes(planeList, generator, actionMatr
             let nextIndex = orbit[i];
 
             planeList[nextIndex] = new Plane(point.clone(), normal.clone());
-            console.log("Using plane "+plane1Index+" as template to set "+nextIndex+" as an affected copy")
+            //console.log("Using plane "+plane1Index+" as template to set "+nextIndex+" as an affected copy")
         }
     }
 }
 
-export function applyC3SymmetryAndOverwritePlanes(planeList, symmetryGenerator1Action, symmetryGenerator2Action){
-    applySymmetryAndOverwritePlanes(planeList, symmetryGenerator1C3, symmetryGenerator1Action);
-    applySymmetryAndOverwritePlanes(planeList, symmetryGenerator2C3, symmetryGenerator2Action);
-    return planeList;
-}
 
 function average(points){
     return points.reduce(function (prev, current, _, array ) {
@@ -161,34 +149,24 @@ export function useExpandedTetrahedron(){
     return planeList;
 }    
 
+
+// tetrahedral rotation (???) symmetry group of order 12
+
 export function computePlanesRandomlyWithTetrahedralIshRotationSymmetry(){        
     //  Compute four random planes, then repeat them after being rotated 120 and 240 degrees around Z axis.
     // this function computes planes randomly with the same symmmetry group as the polyhedron found in the 2000 paper by bokowski and de oliviera. see knownmathematicalsymmmetry.js for the origins of symmetryGenerator1 and symmetryGenerator2
+   
 
-    // matrix that applies generator 1, order 3
-    let rotate120Deg = matrixForRotationAboutZAxis(120)
+    let p1 = [Math.random()-0.5,Math.random()-0.5,Math.random()-0.5];
+    p1 = p1.map(val => val*5);
+    let normal = [Math.random()*2-1,Math.random()*2-1,Math.random()*2-1];
     
-    // matrix that applies generator 2, order 2
-    let rotate180Deg = matrixForRotationAboutZAxis(180);
-    let flipZ = new THREE.Matrix3().set(1,0,0,0,1,0,0,0,-1);
+    /*
+    let p1 = [1.0713674069812056,4.365995933627901,2.041641384338939];
 
-    //from wikipedia. vertices of a tetrahedron centered at origin.
-    //we're going to use them to calculate the rotation axis through their midpoint
-    let tetrahedronVertex1 = new THREE.Vector3(0,0,1);
-    let tetrahedronVertex2 = new THREE.Vector3(Math.sqrt(8/9),0,-1/3); 
-    let tetrahedronEdgeMidpoint = tetrahedronVertex1.clone().add(tetrahedronVertex2).multiplyScalar(1/2).normalize();
-
-    let rotate180AroundTetrahedronAxis = matrixForRotationAboutAxis(tetrahedronEdgeMidpoint, Math.PI);
-
-    //this should rotate tetrahedronVertex1 to tetrahedronVertex2; check
-    let rotatedVertex1 = tetrahedronVertex1.clone().applyMatrix3(rotate180AroundTetrahedronAxis);
-    if(rotatedVertex1.sub(tetrahedronVertex2).length() > 0.1){
-        console.error("ROTATION ERROR! these two should be equal", tetrahedronVertex1.clone().applyMatrix3(rotate180AroundTetrahedronAxis), tetrahedronVertex2);
-    }
-    
-
-    let p1 = [Math.random()*5,Math.random()*5,Math.random()*5]
-    let normal = [Math.random(),Math.random(),Math.random()];
+    let normal = [0.9184708723942012,0.34992943817254396,-0.1842841416500151];
+    normal = normal.map(val => val + Math.random() * 0.5);
+    */
     
     //the rest will be filled in later by the symmetry
     let facePlanes = [];
@@ -197,13 +175,41 @@ export function computePlanesRandomlyWithTetrahedralIshRotationSymmetry(){
     }
     facePlanes[0] = new Plane(p1, normal);
 
-    applySymmetryAndOverwritePlanes(facePlanes, order12Generator1, rotate120Deg);
-    applySymmetryAndOverwritePlanes(facePlanes, order12Generator2, rotate180AroundTetrahedronAxis);
-    applySymmetryAndOverwritePlanes(facePlanes, order12Generator1, rotate120Deg);
+    return applyTetrahedralishSymmetryAndOverwritePlanes(facePlanes)
+}
 
-    return facePlanes;
+// matrix that applies tetrahedron-ish-order-12 generator 1, order 3
+let rotate120Deg = matrixForRotationAboutZAxis(120)
+
+//computing generator #2 is a bit harder.
+
+//from wikipedia. vertices of a tetrahedron centered at origin.
+//we're going to use them to calculate the rotation axis through their midpoint
+let tetrahedronVertex1 = new THREE.Vector3(0,0,1);
+let tetrahedronVertex2 = new THREE.Vector3(Math.sqrt(8/9),0,-1/3); 
+let tetrahedronEdgeMidpoint = tetrahedronVertex1.clone().add(tetrahedronVertex2).multiplyScalar(1/2).normalize();
+
+let rotate180AroundTetrahedronAxis = matrixForRotationAboutAxis(tetrahedronEdgeMidpoint, Math.PI);
+
+//this should rotate tetrahedronVertex1 to tetrahedronVertex2; check
+let rotatedVertex1 = tetrahedronVertex1.clone().applyMatrix3(rotate180AroundTetrahedronAxis);
+if(rotatedVertex1.sub(tetrahedronVertex2).length() > 0.1){
+    console.error("ROTATION ERROR! these two should be equal", tetrahedronVertex1.clone().applyMatrix3(rotate180AroundTetrahedronAxis), tetrahedronVertex2);
+}
+
+export function applyTetrahedralishSymmetryAndOverwritePlanes(planeList, symmetryGenerator1Action, symmetryGenerator2Action){
+    //this will take plane #0 and make planes 1-11 be rotated copies of it.
+
+    applySymmetryAndOverwritePlanes(planeList, order12Generator1, rotate120Deg);
+    applySymmetryAndOverwritePlanes(planeList, order12Generator2, rotate180AroundTetrahedronAxis);
+    applySymmetryAndOverwritePlanes(planeList, order12Generator1, rotate120Deg);
+
+    return planeList;
 }
         
+
+
+//C3 symmetry. worse
         
 export function computePlanesRandomlyWithKnownC3Symmetry(){        
     //  Compute four random planes, then repeat them after being rotated 120 and 240 degrees around Z axis.
@@ -233,6 +239,7 @@ export function computePlanesRandomlyWithKnownC3Symmetry(){
 
     return facePlanes;
 }
+
 
 export function computeInitialDualPlaneList(){
     //let planeList = computePlanesFromPolyhedron(dodecahedron)

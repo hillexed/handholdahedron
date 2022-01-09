@@ -29,7 +29,7 @@
         top: 0;
         left: 0;
         z-index: 2;
-        background-color: #fff5
+        background-color: #fff9
     }
 
     .checkboxgrid{
@@ -54,12 +54,14 @@
     <div id="overlay">
 
         <button onclick="editor.importPlaneList()">Import Planes</button>
-        <button onclick="editor.exportPlaneList()">Export Planes</button>
+        <button onclick="editor.exportData()">Export Planes, Vertices, & Faces</button>
+        <br>
+        Edge self-intersections: <span id="crossingCount"></span>
 
+        <br />
         <br />
 
         Selected planes: <span id="selectedPlane"></span><br>
-        Edge self-intersections: <span id="crossingCount"></span>
 
         <div class="checkboxgrid">
             <div class="planebox">
@@ -106,16 +108,35 @@
         <br>
         <input type="checkbox" id="togglefaces">Show faces (inaccurate) & vertices</input>
         
+
         <br><br>
+        <u>Adjust selected planes with your keyboard!</u>
+        <div id="movecontrols">
+            Move selected planes:<br/>
+            <button onclick="editor.toggleKeyboardMode()">Switch to rotation</button><br/>
+            a and d: translate plane in x direction <br/>
+            w and s: translate plane in y direction<br/>
+            q and e: translate plane in z direction </br>
+            
+        </div>
+        <div id="rotatecontrols" style="display:none">
+            Rotate selected planes: (For best results, check "show planes")<br/>
+            <button onclick="editor.toggleKeyboardMode()">Switch to translation</button><br/>
+            a and d: Rotate plane normal about x-axis<br/>
+            w and s: Rotate plane normal about y-axis<br/>
+            q and e: Rotate plane normal about z-axis<br/>
+        </div>
+        <br/>
+        <u>Random plane search</u><br/>
+        <button onclick="editor.startPlaneSearch(20)">Generate randomly until <20 intersections</button>
+        <br><button onclick="editor.startPlaneSearch(10)">Generate randomly until <10 intersections, or until page crashes</button>
+
+
+        <br><br>
+        <u>Gradient ascent controls:</u><br>
         <button onclick="editor.toggleAscent();">Toggle optimizing</button> (<span id="numIterations">0</span> iterations)<br>
         Thing being optimized: <span id='maximizingValue'>N/A</span>
 
-        <br>
-        <p>Controls:<br/>
-        Move selected planes:<br/>
-        w/s: +-y <br/>
-        a/d: +-x <br/>
-       q/e: +- z</p>
     </div>
   </div>
 </body>
