@@ -15,8 +15,9 @@ import {reallyDumbStartParameters, reallyDumbPlaneMaker, oneRoundGradientAscent,
 
 import {computeInitialDualPlaneList, applyTetrahedralishSymmetryAndOverwritePlanes, } from "./chooseStartPlanes.js";
 
-
 import {matrixForRotationAboutAxis} from "./polyhedramath.js";
+
+import {setPlanesIfProvidedFromURL} from "./premade_selections.js";
 
 class Editor extends HandholdahedronVizualizer{
     constructor(){
@@ -61,6 +62,7 @@ class Editor extends HandholdahedronVizualizer{
 
         this.selectOnePlaneToEdit(0);
 
+        setPlanesIfProvidedFromURL(this);
     }
     updateMeshesFromPlanes(){
         if(!this.meshesNeedUpdate){
@@ -333,6 +335,10 @@ class Editor extends HandholdahedronVizualizer{
         }catch(e){
             alert("Something went wrong!" + e)
         }
+        this.importData(data);
+    }
+
+    importData(data){
         let planeData = data.planeList;
         for(let i=0;i<planeData.length;i++){
             this.planeList[i].point.set(...planeData[i].point);

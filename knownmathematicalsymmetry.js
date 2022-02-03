@@ -49,4 +49,3 @@ export let order12Generator2 = zeroIndex([[1,c],[2,6],[3,8],[4,b],[5,9],[7,a]]);
 
 export let allPossibleEdgeCrossingPairs = computeAllPossibleCrossingPairs(triangleFaceIndexDigits)
 
-

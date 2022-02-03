@@ -197,7 +197,7 @@ if(rotatedVertex1.sub(tetrahedronVertex2).length() > 0.1){
     console.error("ROTATION ERROR! these two should be equal", tetrahedronVertex1.clone().applyMatrix3(rotate180AroundTetrahedronAxis), tetrahedronVertex2);
 }
 
-export function applyTetrahedralishSymmetryAndOverwritePlanes(planeList, symmetryGenerator1Action, symmetryGenerator2Action){
+export function applyTetrahedralishSymmetryAndOverwritePlanes(planeList){
     //this will take plane #0 and make planes 1-11 be rotated copies of it.
 
     applySymmetryAndOverwritePlanes(planeList, order12Generator1, rotate120Deg);
